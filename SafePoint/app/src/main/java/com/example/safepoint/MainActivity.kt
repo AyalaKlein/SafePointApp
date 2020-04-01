@@ -11,6 +11,10 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        // TODO: Set listener to Home Front Command API
+        // startActivity(Intent(this, NavigationActivity::class.java))
+        // putExtra(Dest)
+        // finish()
         profileSettings.setOnClickListener {
             startActivity(Intent(this, ProfileActivity::class.java))
             finish()
