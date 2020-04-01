@@ -1,3 +1,8 @@
 <resources>
     <string name="app_name">SafePoint</string>
+    <string name="eUserName">Name</string>
+    <string name="eFitness">Your Fitness Level 1-10</string>
+    <string name="ePhone">Phone Number</string>
+    <string name="eAddress">Address</string>
+    <string name="eBirthDate">Birth Date</string>
 </resources>
