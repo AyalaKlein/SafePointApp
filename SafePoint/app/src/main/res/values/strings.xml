@@ -6,4 +6,5 @@
     <string name="eAddress">Address</string>
     <string name="eBirthDate">Birth Date</string>
     <string name="title_activity_maps">Map</string>
+    <string name="im_safe">Im Safe!</string>
 </resources>

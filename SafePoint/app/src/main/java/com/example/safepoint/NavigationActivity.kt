@@ -1,9 +1,13 @@
 package com.example.safepoint
 
 import android.content.Intent
-import androidx.appcompat.app.AppCompatActivity
+import android.os.Build
 import android.os.Bundle
-import com.google.android.gms.maps.CameraUpdateFactory
+import android.os.SystemClock
+import android.widget.Chronometer
+import android.widget.Chronometer.OnChronometerTickListener
+import androidx.annotation.RequiresApi
+import androidx.appcompat.app.AppCompatActivity
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
@@ -12,12 +16,17 @@ import com.google.android.gms.maps.model.MarkerOptions
 import kotlinx.android.synthetic.main.activity_navigation.*
 import org.json.JSONArray
 
+
 class NavigationActivity : AppCompatActivity(), OnMapReadyCallback {
     var shelters: JSONArray = JSONArray()
 
+    @RequiresApi(Build.VERSION_CODES.N)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_navigation)
+        // secLeft need to be the amount of time to find a safe point in the area
+        val secLeft = 20
+
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         val mapFragment = supportFragmentManager
             .findFragmentById(R.id.map) as SupportMapFragment
@@ -25,7 +34,15 @@ class NavigationActivity : AppCompatActivity(), OnMapReadyCallback {
 
         shelters = JSONArray(intent.getStringExtra("shelters"))
 
-        // TODO : set interval on nTimer
+        view_timer.isCountDown = true
+        view_timer.base = SystemClock.elapsedRealtime() + (1000 * secLeft)
+        view_timer.start()
+
+        view_timer.setOnChronometerTickListener {
+            if (view_timer.getText().toString() == "00:00")
+                view_timer.stop()
+        }
+
 
         nSafe.setOnClickListener {
             startActivity(Intent(this, MainActivity::class.java))
