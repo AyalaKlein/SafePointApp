@@ -41,4 +41,5 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
     implementation 'com.google.android.gms:play-services-maps:17.0.0'
     implementation 'io.github.rybalkinsd:kohttp:0.11.1'
+    implementation 'com.google.android.gms:play-services-location:17.0.0'
 }
