@@ -31,9 +31,6 @@
             android:name="com.google.android.geo.API_KEY"
             android:value="@string/google_maps_key" />
 
-        <activity
-            android:name=".MapsActivity"
-            android:label="@string/title_activity_maps"></activity>
         <activity android:name=".NavigationActivity" />
         <activity android:name=".ProfileActivity" />
         <activity android:name=".MainActivity">
@@ -43,6 +40,8 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity android:name=".SignInActivity" android:parentActivityName=".NavigationActivity"/>
+        <activity android:name=".RegisterActivity" android:parentActivityName=".SignInActivity"/>
     </application>
 
 </manifest>

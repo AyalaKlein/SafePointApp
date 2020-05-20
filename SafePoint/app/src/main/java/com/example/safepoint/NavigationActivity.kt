@@ -25,8 +25,8 @@ class NavigationActivity : AppCompatActivity(), OnMapReadyCallback {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_navigation)
-        supportActionBar!!.setHomeAsUpIndicator(R.drawable.common_google_signin_btn_icon_dark)
-        supportActionBar!!.setDisplayHomeAsUpEnabled(true)
+        supportActionBar?.setHomeAsUpIndicator(R.drawable.common_google_signin_btn_icon_dark)
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
         // secLeft need to be the amount of time to find a safe point in the area
         val secLeft = 20
 
@@ -64,7 +64,7 @@ class NavigationActivity : AppCompatActivity(), OnMapReadyCallback {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             android.R.id.home -> {
-                startActivity(Intent(this, ProfileActivity::class.java))
+                startActivity(Intent(this, SignInActivity::class.java))
                 finish()
                 return true
             }

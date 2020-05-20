@@ -34,7 +34,7 @@ class MainActivity : AppCompatActivity() {
         val scope = CoroutineScope(newFixedThreadPoolContext(1, "synchronizationPool"))
         scope.launch {
             res = "http://10.0.2.2:5000/api/shelters".httpGet().body()!!.string()
-//            val shelters = JSONArray(res)
+//\            val shelters = JSONArray(res)
             val intent = Intent(applicationContext, NavigationActivity::class.java)
 
             intent.putExtra("shelters", res)
