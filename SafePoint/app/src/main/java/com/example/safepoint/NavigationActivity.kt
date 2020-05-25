@@ -78,7 +78,7 @@ class NavigationActivity : AppCompatActivity(), OnMapReadyCallback {
         // Add a marker in Sydney and move the camera
         for (i in 0 until shelters.length()) {
             val shelter = shelters.getJSONObject(i)!!
-            googleMap.addMarker(MarkerOptions().position(LatLng(shelter["lat"] as Double, shelter["lon"] as Double)))
+            googleMap.addMarker(MarkerOptions().position(LatLng(shelter["locX"] as Double, shelter["locY"] as Double)))
         }
     }
 
