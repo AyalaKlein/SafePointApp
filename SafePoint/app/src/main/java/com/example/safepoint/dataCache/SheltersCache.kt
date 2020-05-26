@@ -19,6 +19,7 @@ class SheltersCache {
 
         fun getShelters(locX: Double, locY: Double, radius: Double, callback: ((JSONArray) -> Unit)?) {
             scope.launch {
+
                 shelters = JSONArray("http://10.0.2.2:5000/api/Shelters/GetNearestShelters?locX=${locX}&locY=${locY}&meterRadius=${radius}".httpGet().body()!!.string())
                 callback?.let { it(shelters) }
             }

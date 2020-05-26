@@ -57,10 +57,8 @@ class NavigationActivity : AppCompatActivity(), OnMapReadyCallback {
             mapFragment.getMapAsync(this)
         accessToken = getSharedPreferences(getString(R.string.user_settings), Context.MODE_PRIVATE)
             .getString(getString(R.string.access_token), null)
-        GlobalScope.launch {
-            val res = "http://10.0.2.2:5000/api/shelters".httpGetAsync().await().body()?.string() ?:return@launch
-            shelters = JSONArray(res)
-        }
+        shelters = JSONArray(intent.getStringExtra("shelters"))
+
 
         view_timer.isCountDown = true
         view_timer.base = SystemClock.elapsedRealtime() + (1000 * secLeft)

@@ -47,8 +47,6 @@ class MainActivity : AppCompatActivity() {
 
         // TODO: Set listener to Home Front Command API
 
-//        mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
-//        getLastLocation()
         LocationService.init(applicationContext, this)
         LocationService.getLastLocation().addOnCompleteListener {
             if (it.result != null) {
@@ -56,21 +54,6 @@ class MainActivity : AppCompatActivity() {
             }
         }
         //TODO: Set interval for relevant shelters
-
-        var json = ""
-//        "http://localhost:5000/api/shelters".httpGet().isSuccessful() =
-
-        var res = ""
-//        val scope = CoroutineScope(newFixedThreadPoolContext(1, "synchronizationPool"))
-//        scope.launch {
-//            res = "http://10.0.2.2:5000/api/shelters".httpGet().body()!!.string()
-////\            val shelters = JSONArray(res)
-//
-//        }
-
-        val intent = Intent(applicationContext, NavigationActivity::class.java)
-        startActivity(intent)
-        finish()
 
         profileSettings.setOnClickListener {
             startActivity(Intent(this, ProfileActivity::class.java))
