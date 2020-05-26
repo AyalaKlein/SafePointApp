@@ -11,4 +11,8 @@
     <string name="im_safe">Im Safe!</string>
     <string name="register">Register</string>
     <string name="login">Login</string>
+    <string name="user_settings">user_settings</string>
+    <string name="refresh_token">refresh_token</string>
+    <string name="access_token">access_token</string>
+    <string name="expires_in">expires_in</string>
 </resources>

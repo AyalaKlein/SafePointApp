@@ -53,18 +53,16 @@ class MainActivity : AppCompatActivity() {
 //        "http://localhost:5000/api/shelters".httpGet().isSuccessful() =
 
         var res = ""
-        val scope = CoroutineScope(newFixedThreadPoolContext(1, "synchronizationPool"))
-        scope.launch {
-            res = "http://10.0.2.2:5000/api/shelters".httpGet().body()!!.string()
-//\            val shelters = JSONArray(res)
-            val intent = Intent(applicationContext, NavigationActivity::class.java)
+//        val scope = CoroutineScope(newFixedThreadPoolContext(1, "synchronizationPool"))
+//        scope.launch {
+//            res = "http://10.0.2.2:5000/api/shelters".httpGet().body()!!.string()
+////\            val shelters = JSONArray(res)
+//
+//        }
 
-            intent.putExtra("shelters", res)
-            startActivity(intent)
-            finish()
-        }
-
-
+        val intent = Intent(applicationContext, NavigationActivity::class.java)
+        startActivity(intent)
+        finish()
         profileSettings.setOnClickListener {
             startActivity(Intent(this, ProfileActivity::class.java))
             finish()

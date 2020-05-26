@@ -1,6 +1,7 @@
 package com.example.safepoint
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.content.Intent
 import android.location.Location
 import android.os.Build
@@ -16,21 +17,24 @@ import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.location.LocationManagerCompat.isLocationEnabled
-import com.google.android.gms.location.LocationCallback
-import com.google.android.gms.location.LocationRequest
-import com.google.android.gms.location.LocationResult
-import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
+import io.github.rybalkinsd.kohttp.ext.httpGet
+import io.github.rybalkinsd.kohttp.ext.httpGetAsync
 import kotlinx.android.synthetic.main.activity_navigation.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.newFixedThreadPoolContext
 import org.json.JSONArray
 
 
 class NavigationActivity : AppCompatActivity(), OnMapReadyCallback {
     var shelters: JSONArray = JSONArray()
+    var accessToken : String? = null
 
     @RequiresApi(Build.VERSION_CODES.N)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -51,8 +55,12 @@ class NavigationActivity : AppCompatActivity(), OnMapReadyCallback {
         val mapFragment = supportFragmentManager
             .findFragmentById(R.id.map) as SupportMapFragment
             mapFragment.getMapAsync(this)
-
-        shelters = JSONArray(intent.getStringExtra("shelters"))
+        accessToken = getSharedPreferences(getString(R.string.user_settings), Context.MODE_PRIVATE)
+            .getString(getString(R.string.access_token), null)
+        GlobalScope.launch {
+            val res = "http://10.0.2.2:5000/api/shelters".httpGetAsync().await().body()?.string() ?:return@launch
+            shelters = JSONArray(res)
+        }
 
         view_timer.isCountDown = true
         view_timer.base = SystemClock.elapsedRealtime() + (1000 * secLeft)
@@ -62,8 +70,6 @@ class NavigationActivity : AppCompatActivity(), OnMapReadyCallback {
             //TODO pop up stay safe if there is no time
             if (view_timer.text.toString() == "00:00")
                 view_timer.stop()
-
-
         }
 
 
@@ -78,14 +84,18 @@ class NavigationActivity : AppCompatActivity(), OnMapReadyCallback {
         // Add a marker in Sydney and move the camera
         for (i in 0 until shelters.length()) {
             val shelter = shelters.getJSONObject(i)!!
-            googleMap.addMarker(MarkerOptions().position(LatLng(shelter["lat"] as Double, shelter["lon"] as Double)))
+            googleMap.addMarker(MarkerOptions().position(LatLng(shelter["locX"] as Double, shelter["locY"] as Double)))
         }
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             android.R.id.home -> {
-                startActivity(Intent(this, SignInActivity::class.java))
+                if(accessToken == null){
+                    startActivity(Intent(this, SignInActivity::class.java))
+                } else {
+                    startActivity(Intent(this, ProfileActivity::class.java))
+                }
                 finish()
                 return true
             }
