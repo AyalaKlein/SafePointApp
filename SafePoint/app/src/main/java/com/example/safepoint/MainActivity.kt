@@ -68,7 +68,7 @@ class MainActivity : AppCompatActivity() {
         SheltersCache.getShelters(currLoc.latitude, currLoc.longitude, 10000.0) {
             val intent = Intent(applicationContext, NavigationActivity::class.java)
 
-            intent.putExtra("shelters", it.toString())
+            intent.putExtra("shelters", it.getJSONArray("shelters").toString())
             startActivity(intent)
             finish()
         }
