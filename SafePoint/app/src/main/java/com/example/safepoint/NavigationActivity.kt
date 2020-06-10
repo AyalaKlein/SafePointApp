@@ -94,10 +94,12 @@ view_timer.isCountDown = true
 view_timer.base = SystemClock.elapsedRealtime() + (1000 * secLeft)
 view_timer.start()
 
+
 view_timer.setOnChronometerTickListener {
     //TODO pop up stay safe if there is no time
     if (view_timer.text.toString() == "00:00")
         view_timer.stop()
+
 
 
 }
