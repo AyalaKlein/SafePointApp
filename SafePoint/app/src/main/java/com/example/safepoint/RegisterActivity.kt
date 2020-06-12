@@ -24,7 +24,6 @@ class RegisterActivity : AppCompatActivity() {
                 body { json {
                     "username" to username
                     "password" to password
-                    "email" to email
                 } }
             }.invokeOnCompletion {
                 Intent(applicationContext, SignInActivity::class.java)

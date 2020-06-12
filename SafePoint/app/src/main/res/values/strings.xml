@@ -13,4 +13,8 @@
     <string name="login">Login</string>
     <string name="signup">Sign Up</string>
     <string name="notregistered">not registered yet?​</string>
+    <string name="age">Age</string>
+    <string name="registration">Registration</string>
+    <string name="personal_identity">Personal Identity</string>
+    <string name="i_have_a_mobility_difficulty">I have a mobility difficulty​</string>
 </resources>
