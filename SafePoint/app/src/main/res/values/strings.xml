@@ -11,4 +11,6 @@
     <string name="im_safe">Im Safe!</string>
     <string name="register">Register</string>
     <string name="login">Login</string>
+    <string name="signup">Sign Up</string>
+    <string name="notregistered">not registered yet?​</string>
 </resources>
