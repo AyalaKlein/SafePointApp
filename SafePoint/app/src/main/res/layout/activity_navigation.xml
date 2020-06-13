@@ -13,15 +13,29 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="1.0"
+        tools:layout_editor_absoluteX="119dp" />
+
+    <Button
+        android:id="@+id/angry_btn"
+        android:layout_width="55dp"
+        android:layout_height="55dp"
+        android:background="@drawable/rightbuttonshape"
+        android:text=""
+        android:textColor="#FFFFFF"
+        android:textSize="30sp"
+        tools:layout_editor_absoluteX="324dp"
+        tools:layout_editor_absoluteY="650dp" />
 
     <Chronometer
         android:id="@+id/view_timer"
-        android:layout_width="match_parent"
-        android:layout_height="80dp"
-        android:background="#DCB3E8"
         android:gravity="center"
-        android:textSize="50sp"
+        android:textColor="#FFFFFF"
+        android:textSize="30sp"
+        android:layout_width="220dp"
+        android:layout_height="55dp"
+        android:background="@drawable/countbuttonshape"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.496"
@@ -31,10 +45,21 @@
         tools:targetApi="24" />
 
     <Button
+        android:id="@+id/left_btn"
+        android:layout_width="55dp"
+        android:layout_height="55dp"
+        android:background="@drawable/leftbuttonshape"
+        android:text=""
+        android:textColor="#FFFFFF"
+        android:textSize="30sp"
+        tools:layout_editor_absoluteX="31dp"
+        tools:layout_editor_absoluteY="650dp" />
+
+    <Button
         android:id="@+id/nSafe"
         android:layout_width="200dp"
         android:layout_height="55dp"
-        android:background="@drawable/buttonshape"
+        android:background="@drawable/safebuttonshape"
         android:gravity="center"
         android:text="@string/im_safe"
         android:textColor="#FFFFFF"
