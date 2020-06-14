@@ -17,4 +17,5 @@
     <string name="registration">Registration</string>
     <string name="personal_identity">Personal Identity</string>
     <string name="i_have_a_mobility_difficulty">I have a mobility difficulty​</string>
+    <string name="guest">Continue as guest</string>
 </resources>
