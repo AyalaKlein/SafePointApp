@@ -8,7 +8,7 @@ import io.github.rybalkinsd.kohttp.ext.url
 import kotlinx.android.synthetic.main.activity_register.*
 import kotlinx.android.synthetic.main.activity_signin.*
 import kotlinx.android.synthetic.main.activity_signin.password
-import kotlinx.android.synthetic.main.activity_signin.register
+import kotlinx.android.synthetic.main.activity_signin.signup
 import kotlinx.android.synthetic.main.activity_signin.username
 
 class RegisterActivity : AppCompatActivity() {
@@ -24,7 +24,6 @@ class RegisterActivity : AppCompatActivity() {
                 body { json {
                     "username" to username
                     "password" to password
-                    "email" to email
                 } }
             }.invokeOnCompletion {
                 Intent(applicationContext, SignInActivity::class.java)
