@@ -53,12 +53,10 @@ class SyncService : Service() {
                 LocationService.getLastLocation().addOnCompleteListener {
                     val location: Location? = it.result
                     if (location != null) {
-                        SheltersCache.getShelters(location.latitude, location.longitude, 10000.0) {
-                            val a = it
+                        SheltersCache.getShelters(location.latitude, location.longitude, 10000.0) { it1 ->
+                            handler.postDelayed(this, it1.getInt("refreshTime").toLong())
                         }
                     }
-
-                    handler.postDelayed(this, 10000)
                 }
             }
         }

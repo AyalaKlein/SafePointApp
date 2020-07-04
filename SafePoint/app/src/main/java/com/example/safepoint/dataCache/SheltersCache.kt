@@ -7,6 +7,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.newFixedThreadPoolContext
 import org.json.JSONArray
+import org.json.JSONObject
 
 class SheltersCache {
     companion object {
@@ -17,11 +18,11 @@ class SheltersCache {
             return shelters
         }
 
-        fun getShelters(locX: Double, locY: Double, radius: Double, callback: ((JSONArray) -> Unit)?) {
+        fun getShelters(locX: Double, locY: Double, radius: Double, callback: ((JSONObject) -> Unit)?) {
             scope.launch {
-
-                shelters = JSONArray("http://10.0.2.2:5000/api/Shelters/GetNearestShelters?locX=${locX}&locY=${locY}&meterRadius=${radius}".httpGet().body()!!.string())
-                callback?.let { it(shelters) }
+                var result = JSONObject("http://10.0.2.2:5000/api/Shelters/GetNearestShelters?locX=${locX}&locY=${locY}&meterRadius=${radius}".httpGet().body()!!.string())
+                shelters = result.getJSONArray("shelters")
+                callback?.let { it(result) }
             }
         }
     }

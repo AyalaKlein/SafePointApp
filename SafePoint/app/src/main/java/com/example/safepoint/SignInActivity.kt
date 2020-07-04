@@ -62,7 +62,7 @@ class SignInActivity : AppCompatActivity() {
            }
         }
 
-        register.setOnClickListener{
+        signup.setOnClickListener{
             startActivity(Intent(this, RegisterActivity::class.java))
             finish()
         }
