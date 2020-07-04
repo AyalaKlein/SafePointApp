@@ -42,4 +42,5 @@ dependencies {
     implementation 'com.google.android.gms:play-services-maps:17.0.0'
     implementation 'io.github.rybalkinsd:kohttp:0.11.1'
     implementation 'com.google.android.gms:play-services-location:17.0.0'
+    implementation 'androidx.work:work-runtime:2.1.0'
 }
