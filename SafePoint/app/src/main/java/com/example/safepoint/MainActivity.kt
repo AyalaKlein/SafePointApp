@@ -51,13 +51,6 @@ class MainActivity : AppCompatActivity() {
         val scope = CoroutineScope(newFixedThreadPoolContext(1, "synchronizationPool"))
         scope.launch {
             res = "http://10.0.2.2:5000/api/shelters".httpGet().body()!!.string()
-//          val shelters = JSONArray(res)
-            //(shelters[0] as JSONObject)["id"]
-            //val intent = Intent(
-//                Intent.ACTION_VIEW,
-//                Uri.parse("http://maps.google.com/maps?saddr=$locYCurr,$locXCurr&daddr=$locXCurr,$locXCurr")
-//            )
-//            startActivity(intent)
             val shelters = JSONArray(res)
             val intent = Intent(applicationContext, NavigationActivity::class.java)
 
@@ -65,42 +58,18 @@ class MainActivity : AppCompatActivity() {
             startActivity(intent)
             finish()
 
-        LocationService.init(applicationContext, this@MainActivity)
-        LocationService.getLastLocation().addOnCompleteListener {
-            if (it.result != null) {
-                //initShelters(it.result!!)
+            LocationService.init(applicationContext, this@MainActivity)
+            LocationService.getLastLocation().addOnCompleteListener {
+                if (it.result != null) {
+                    //initShelters(it.result!!)
+                }
             }
-        }
             //TODO: Set interval for relevant shelters
 
-        profileSettings.setOnClickListener {
-            startActivity(Intent(this, ProfileActivity::class.java))
-            finish()
-        }
-    }
-
-    private fun initShelters(currLoc: Location) {
-        SheltersCache.getShelters(currLoc.latitude, currLoc.longitude, 10000.0) {
-            val intent = Intent(applicationContext, NavigationActivity::class.java)
-
-            intent.putExtra("shelters", it.toString())
-            startActivity(intent)
-            finish()
-        }
-    }
-
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
-        if (requestCode == PERMISSION_ID) {
-            if ((grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
-                LocationService.getLastLocation().addOnCompleteListener {
-                    it.result?.let { it1 -> initShelters(it1) }
-                }
-
-            profileSettings.setOnClickListener {
-                val intent = Intent(applicationContext, ProfileActivity::class.java)
-                startActivity(intent)
-                finish()
-            }
+//            profileSettings.setOnClickListener {
+//                startActivity(Intent(this, ProfileActivity::class.java))
+//                finish()
+//            }
         }
     }
 

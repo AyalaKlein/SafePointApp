@@ -24,13 +24,13 @@ class LocationService {
         val PERMISSION_ID = 42
         lateinit var mFusedLocationClient: FusedLocationProviderClient
         lateinit var context: Context
-        lateinit var activity: Activity
+        var activity: Activity? = null
 
-        fun init(context: Context, activity: Activity) {
+        fun init(context: Context, activity: Activity?) {
             this.context = context
             this.activity = activity
 
-            mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this.activity)
+            mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this.context)
         }
 
         @SuppressLint("MissingPermission")
@@ -42,7 +42,6 @@ class LocationService {
                         if (location == null) {
                             requestNewLocationData()
                         }
-
                         return@Continuation location
                     })
                 } else {
@@ -50,7 +49,7 @@ class LocationService {
                     val intent = Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
                     context.startActivity(intent)
                 }
-            } else {
+            } else if(this.activity != null) {
                 requestPermissions()
             }
 
@@ -61,13 +60,13 @@ class LocationService {
 
         @SuppressLint("MissingPermission")
         private fun requestNewLocationData() {
-            var mLocationRequest = LocationRequest()
+            val mLocationRequest = LocationRequest()
             mLocationRequest.priority = LocationRequest.PRIORITY_HIGH_ACCURACY
             mLocationRequest.interval = 10000
             mLocationRequest.fastestInterval = 5000
             mLocationRequest.numUpdates = 10
 
-            mFusedLocationClient = LocationServices.getFusedLocationProviderClient(activity)
+            mFusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
             mFusedLocationClient!!.requestLocationUpdates(
                 mLocationRequest, mLocationCallback,
                 Looper.myLooper()
@@ -106,7 +105,7 @@ class LocationService {
 
         private fun requestPermissions() {
             ActivityCompat.requestPermissions(
-                activity,
+                activity!!,
                 arrayOf(Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION),
                 PERMISSION_ID
             )

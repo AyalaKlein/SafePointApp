@@ -1,25 +1,33 @@
 package background.workers
 
 import android.content.Context
+import androidx.work.CoroutineWorker
 import androidx.work.OneTimeWorkRequest
-import androidx.work.Worker
 import androidx.work.WorkerParameters
+import com.example.safepoint.background.LocationService
+import com.google.android.gms.maps.model.LatLng
 import utils.GeofencesManager
 import utils.PermissionsUtils
 
 class AddGeofencesWorker(
-    context: Context,
+    var context: Context,
     workerParams: WorkerParameters
-) : Worker(context, workerParams) {
+) : CoroutineWorker(context, workerParams) {
     var geofencesManager: GeofencesManager = GeofencesManager.createGeofenceManager(context, PermissionsUtils(context))!!
 
-    override fun doWork(): Result {
+    override suspend fun doWork(): Result {
         registerGeofences()
         return Result.success()
     }
 
     private fun registerGeofences() {
-        geofencesManager.registerGeofences()
+        LocationService.init(context, null)
+        //TODO replace with assigned shelter
+        val location = LocationService.getLastLocation().result
+        if(location != null){
+            geofencesManager.addOrUpdateGeofence("shelter", LatLng(location.latitude, location.longitude), 100)
+            geofencesManager.registerGeofences()
+        }
     }
 
     fun permissionsMissing() {}

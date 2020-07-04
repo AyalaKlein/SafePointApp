@@ -5,6 +5,7 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.util.Log
+import com.example.safepoint.R
 import com.google.android.gms.location.*
 import com.google.android.gms.maps.model.LatLng
 import contexts.receivers.GeofenceBroadcastReceiver
@@ -32,10 +33,14 @@ class GeofencesManager constructor(val context: Context) {
     private val mGeofencePendingIntent: PendingIntent? = null
 
     init {
-
+        val sharedPreferences = context.getSharedPreferences(context.getString(R.string.geofences), Context.MODE_PRIVATE)
+        val geofences = sharedPreferences.getString(context.getString(R.string.geofence_list), "")
+        for (geofence in geofences!!.split(",").toTypedArray()){
+            registeredGeofences.add(geofence)
+        }
     }
 
-    fun addGeofenceIfNotExist(key: String, expirationDuration: Long, location: LatLng?, radius: Int) {
+    fun addGeofenceIfNotExist(key: String, location: LatLng?, radius: Int) {
         if (registeredGeofences.contains(key)) {
             return
         }
@@ -43,7 +48,6 @@ class GeofencesManager constructor(val context: Context) {
             val geofence = Geofence.Builder()
                     .setRequestId(key)
                     .setCircularRegion(location.latitude, location.longitude, radius.toFloat())
-                    .setExpirationDuration(expirationDuration)
                     .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_DWELL
                             or Geofence.GEOFENCE_TRANSITION_ENTER
                             or Geofence.GEOFENCE_TRANSITION_EXIT)
@@ -53,12 +57,11 @@ class GeofencesManager constructor(val context: Context) {
         }
     }
 
-    fun addOrUpdateGeofence(key: String, expirationDuration: Long, location: LatLng?, radius: Int) {
+    fun addOrUpdateGeofence(key: String, location: LatLng?, radius: Int) {
         if (location != null) {
             val geofence = Geofence.Builder()
                     .setRequestId(key)
                     .setCircularRegion(location.latitude, location.longitude, radius.toFloat())
-                    .setExpirationDuration(expirationDuration)
                     .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_DWELL
                             or Geofence.GEOFENCE_TRANSITION_ENTER
                             or Geofence.GEOFENCE_TRANSITION_EXIT)
@@ -126,7 +129,11 @@ class GeofencesManager constructor(val context: Context) {
 
     private fun updateRegisteredGeofences() {
         registeredGeofences.addAll(unRegisteredGeofences.keys)
-//        configurationDaoWrapper.addConfiguration(Configuration(context.applicationContext.getString(R.string.saved_auth_token), gson.toJson(registeredGeofences)))
+        val sharedPreferences = context.getSharedPreferences(context.getString(R.string.geofences), Context.MODE_PRIVATE)
+        with(sharedPreferences.edit()){
+            putString(context.getString(R.string.geofence_list), registeredGeofences.joinToString(separator = ","))
+            apply()
+        }
     }
 
     fun removeGeofences(vararg keys: String?) {
@@ -135,8 +142,7 @@ class GeofencesManager constructor(val context: Context) {
             for (key in keys) {
                 registeredGeofences.remove(key)
             }
-//            configurationDaoWrapper.addConfiguration(Configuration(context.applicationContext.getString(R.string.saved_auth_token), gson.toJson(registeredGeofences)))
-        }.addOnFailureListener { e: Exception? ->
+       }.addOnFailureListener { e: Exception? ->
 
             Log.e(TAG, "Removing geofence failed", e)
         }
@@ -146,8 +152,7 @@ class GeofencesManager constructor(val context: Context) {
         if (registeredGeofences.size > 0) {
             geofencingClient.removeGeofences(geofencePendingIntent).addOnSuccessListener { aVoid: Void? ->
                 registeredGeofences.clear()
-//                configurationDaoWrapper.addConfiguration(Configuration(context.applicationContext.getString(R.string.saved_auth_token), gson.toJson(registeredGeofences)))
-                Log.i(TAG, "Removing Geofence Success")
+               Log.i(TAG, "Removing Geofence Success")
             }.addOnFailureListener { e: Exception? ->
                 Log.e(TAG, "Removing geofence failed", e)
             }

@@ -48,8 +48,10 @@ class SyncService : Service() {
         )
 
         val handler = Handler()
+        val context = this
         val runnableCode: Runnable = object : Runnable {
             override fun run() {
+                LocationService.init(context, null);
                 LocationService.getLastLocation().addOnCompleteListener {
                     val location: Location? = it.result
                     if (location != null) {

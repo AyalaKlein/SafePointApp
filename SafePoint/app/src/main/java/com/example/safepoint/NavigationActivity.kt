@@ -65,9 +65,9 @@ class NavigationActivity : AppCompatActivity(), OnMapReadyCallback {
         val secLeft = 60
 
         //
-//    val shelter = shelters.getJSONObject(i)!!
-//    googleMap.addMarker(MarkerOptions().position(LatLng(shelter["locX"] as Double, shelter["locY"] as Double)))
-//}
+        //    val shelter = shelters.getJSONObject(i)!!
+        //    googleMap.addMarker(MarkerOptions().position(LatLng(shelter["locX"] as Double, shelter["locY"] as Double)))
+        //}
 
         for (i in 0 until shelters.length()) {
             val shelter = shelters.getJSONObject(i)!!
