@@ -15,12 +15,14 @@ import android.os.Looper
 import android.os.SystemClock
 import android.provider.Settings
 import android.view.MenuItem
+import android.view.View
 import android.widget.Chronometer
 import android.widget.Chronometer.OnChronometerTickListener
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.location.LocationManagerCompat.isLocationEnabled
+import com.example.safepoint.background.LocationService
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
@@ -30,25 +32,141 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.LatLngBounds
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.gms.maps.model.PolylineOptions
 import com.google.maps.android.PolyUtil
+import io.github.rybalkinsd.kohttp.ext.asString
 import io.github.rybalkinsd.kohttp.ext.httpGet
+import io.github.rybalkinsd.kohttp.ext.httpGetAsync
+import io.github.rybalkinsd.kohttp.util.Json
 import kotlinx.android.synthetic.main.activity_navigation.*
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.newFixedThreadPoolContext
+import models.Shelter
 import okhttp3.Response
 import org.json.JSONArray
 import org.json.JSONObject
+import kotlinx.serialization.*
+import kotlinx.serialization.json.*
 
 
 class NavigationActivity : AppCompatActivity(), OnMapReadyCallback {
-    var shelters: JSONArray = JSONArray()
-    var choosenShelter: JSONObject = JSONObject()
+    private var shelters: Array<Shelter> = emptyArray();
+    private var assignedShelter: Shelter? = null
     private var googleMap: GoogleMap? = null
+    private var myLocation: Location? = null
 
-    @RequiresApi(Build.VERSION_CODES.N)
+    //TODO add logic to set isEmergency to true (for now FCM)
+    private var isEmergency: Boolean = false
+        set(value) {
+            field = value
+            if(value){
+                showEmergencyDisplay()
+            } else {
+                showRegularDisplay()
+            }
+        }
+
+    private fun showEmergencyDisplay() {
+        val secLeft = 60
+        view_timer.isCountDown = true
+        view_timer.base = SystemClock.elapsedRealtime() + (1000 * secLeft)
+        view_timer.start()
+
+
+        view_timer.setOnChronometerTickListener {
+            //TODO pop up stay safe if there is no time
+            if (view_timer.text.toString() == "00:00")
+                view_timer.stop()
+        }
+
+
+        nSafe.setOnClickListener {
+            //TODO - save something
+//            startActivity(Intent(this, MainActivity::class.java))
+//            finish()
+        }
+        if(this.googleMap != null){
+            showEmergencyMap()
+        }
+    }
+    private fun showEmergencyMap(){
+
+        if(assignedShelter == null){
+            //TODO show there is no current location
+            return;
+        }
+        //TODO get current location
+        val latLngOrigin = LatLng(10.3181466, 123.9029382) // Ayala
+        val latLngDestination = assignedShelter!!.latLong
+
+        this.googleMap!!.addMarker(MarkerOptions().position(latLngOrigin).title("Origin"))
+        this.googleMap!!.addMarker(
+            MarkerOptions().position(latLngDestination).title("Shelter")
+        )
+        this.googleMap!!.moveCamera(CameraUpdateFactory.newLatLngZoom(latLngOrigin, 14.5f))
+
+
+        val path: MutableList<List<LatLng>> = ArrayList()
+        val urlDirections =
+            "https://maps.googleapis.com/maps/api/directions/json?origin=10.3181466,123.9029382&destination=10.311795,123.915864&key=AIzaSyDwiKGPtON3JZTGoW08x9bBDGSqOCfMD2U"
+        val directionsRequest = object : StringRequest(
+            Request.Method.GET,
+            urlDirections,
+            com.android.volley.Response.Listener<String> { response ->
+                val jsonResponse = JSONObject(response)
+                // Get routes
+                val routes = jsonResponse.getJSONArray("routes")
+                val legs = routes.getJSONObject(0).getJSONArray("legs")
+                val steps = legs.getJSONObject(0).getJSONArray("steps")
+                for (i in 0 until steps.length()) {
+                    val points =
+                        steps.getJSONObject(i).getJSONObject("polyline").getString("points")
+                    path.add(PolyUtil.decode(points))
+                }
+                for (i in 0 until path.size) {
+                    this.googleMap!!.addPolyline(PolylineOptions().addAll(path[i]).color(Color.RED))
+                }
+            },
+            com.android.volley.Response.ErrorListener { _ ->
+            }) {}
+        val requestQueue = Volley.newRequestQueue(this)
+        requestQueue.add(directionsRequest)
+
+    }
+    private fun showRegularMap(){
+        if(!this.shelters.isNotEmpty()){
+            return;
+        }
+
+        val builder = LatLngBounds.Builder()
+        for(shelter in shelters){
+            this.googleMap!!.addMarker(MarkerOptions().position(shelter.latLong).title(shelter.details))
+            builder.include(shelter.latLong)
+        }
+        this.googleMap!!.setLatLngBoundsForCameraTarget(builder.build())
+    }
+
+    private fun showRegularDisplay() {
+        nSafe.visibility = View.GONE
+        left_btn.visibility = View.GONE
+        angry_btn.visibility = View.GONE
+        view_timer.visibility = View.GONE
+        GlobalScope.launch {
+            //TODO use env server
+            val res = "http://10.0.2.2:5000/api/shelters".httpGetAsync().await()
+//            res.use{
+//                val json = Json(JsonConfiguration.Default)
+//                this@NavigationActivity.shelters = json.parse(Shelter.ser(), it.asString())
+//            }
+            showRegularMap()
+
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_navigation)
@@ -57,107 +175,33 @@ class NavigationActivity : AppCompatActivity(), OnMapReadyCallback {
 
         val mapFragment = supportFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
+        isEmergency = false
 
-        //TODO: shelters
-        // get current location
-
-        // secLeft need to be the amount of time to find a safe point in the area
-        val secLeft = 60
-
-        //
-        //    val shelter = shelters.getJSONObject(i)!!
-        //    googleMap.addMarker(MarkerOptions().position(LatLng(shelter["locX"] as Double, shelter["locY"] as Double)))
-        //}
-
-        for (i in 0 until shelters.length()) {
-            val shelter = shelters.getJSONObject(i)!!
-            choosenShelter = shelter
+        LocationService.init(applicationContext, this@NavigationActivity)
+        LocationService.getLastLocation().addOnCompleteListener {
+            this.myLocation = it.result
         }
-
-        /*TODO: Algo - get the closest shelter
-            for each shelter = >
-                if shelters is not full ++
-                if shelters is easy ++
-           shelters.sort by distance then rate
-           chosen = shelters[0]
-        */
-
-
-// Navigate
-
-// Obtain the SupportMapFragment and get notified when the map is ready to be used.
-
-
-shelters = JSONArray(intent.getStringExtra("shelters"))
-
-view_timer.isCountDown = true
-view_timer.base = SystemClock.elapsedRealtime() + (1000 * secLeft)
-view_timer.start()
-
-
-view_timer.setOnChronometerTickListener {
-    //TODO pop up stay safe if there is no time
-    if (view_timer.text.toString() == "00:00")
-        view_timer.stop()
-
-
-
-}
-
-
-nSafe.setOnClickListener {
-    //TODO - save something
-    startActivity(Intent(this, MainActivity::class.java))
-    finish()
-}
-}
-
-override fun onMapReady(googleMap: GoogleMap) {
-    this.googleMap = googleMap
-
-    val latLngOrigin = LatLng(10.3181466, 123.9029382) // Ayala
-    val latLngDestination = LatLng(10.311795,123.9129666) // Best Shelter
-        //LatLng((shelters[0] as JSONObject)["locX"]), (shelters[0] as JSONObject)["locY"])
-        //LatLng(10.311795,123.915864) // SM City
-    this.googleMap!!.addMarker(MarkerOptions().position(latLngOrigin).title("Ayala"))
-    this.googleMap!!.addMarker(MarkerOptions().position(latLngDestination).title("Best Shelter"))
-    this.googleMap!!.moveCamera(CameraUpdateFactory.newLatLngZoom(latLngOrigin, 14.5f))
-
-
-    val path: MutableList<List<LatLng>> = ArrayList()
-    val urlDirections = "https://maps.googleapis.com/maps/api/directions/json?origin=10.3181466,123.9029382&destination=10.311795,123.915864&key=AIzaSyDwiKGPtON3JZTGoW08x9bBDGSqOCfMD2U"
-    val directionsRequest = object : StringRequest(Request.Method.GET, urlDirections, com.android.volley.Response.Listener<String> {
-            response ->
-        val jsonResponse = JSONObject(response)
-        // Get routes
-        val routes = jsonResponse.getJSONArray("routes")
-        val legs = routes.getJSONObject(0).getJSONArray("legs")
-        val steps = legs.getJSONObject(0).getJSONArray("steps")
-        for (i in 0 until steps.length()) {
-            val points = steps.getJSONObject(i).getJSONObject("polyline").getString("points")
-            path.add(PolyUtil.decode(points))
-        }
-        for (i in 0 until path.size) {
-            this.googleMap!!.addPolyline(PolylineOptions().addAll(path[i]).color(Color.RED))
-        }
-    }, com.android.volley.Response.ErrorListener {
-            _ ->
-    }){}
-    val requestQueue = Volley.newRequestQueue(this)
-    requestQueue.add(directionsRequest)
-
-}
-
-override fun onOptionsItemSelected(item: MenuItem): Boolean {
-when (item.itemId) {
-    android.R.id.home -> {
-        startActivity(Intent(this, SignInActivity::class.java))
-        finish()
-        return true
     }
-}
-return super.onOptionsItemSelected(item);
-}
+
+    override fun onMapReady(googleMap: GoogleMap) {
+        this.googleMap = googleMap
+        if(!isEmergency){
+            showRegularMap()
+        } else {
+            showEmergencyMap()
+        }
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+            android.R.id.home -> {
+                startActivity(Intent(this, SignInActivity::class.java))
+                finish()
+                return true
+            }
+        }
+        return super.onOptionsItemSelected(item);
+    }
 
 
 }

@@ -20,9 +20,12 @@ import androidx.core.location.LocationManagerCompat.isLocationEnabled
 import com.example.safepoint.dataCache.SheltersCache
 import com.google.android.gms.common.api.Response
 import com.google.android.gms.location.*
+import io.github.rybalkinsd.kohttp.ext.asString
 import io.github.rybalkinsd.kohttp.ext.httpGet
+import io.github.rybalkinsd.kohttp.ext.httpGetAsync
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.newFixedThreadPoolContext
 import org.json.JSONArray
@@ -30,47 +33,27 @@ import org.json.JSONArray
 
 class MainActivity : AppCompatActivity() {
 
-    val PERMISSION_ID = 42
-    lateinit var mFusedLocationClient: FusedLocationProviderClient
-    var locXCurr = ""
-    var locYCurr = ""
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
         // TODO: Set listener to Home Front Command API
-
-
-        //TODO: Set interval for relevant shelters
-
-        var json = ""
-//        "http://localhost:5000/api/shelters".httpGet().isSuccessful() =
-
-        var res = ""
-        val scope = CoroutineScope(newFixedThreadPoolContext(1, "synchronizationPool"))
-        scope.launch {
-            res = "http://10.0.2.2:5000/api/shelters".httpGet().body()!!.string()
-            val shelters = JSONArray(res)
-            val intent = Intent(applicationContext, NavigationActivity::class.java)
-
-            intent.putExtra("shelters", res)
-            startActivity(intent)
-            finish()
-
-            LocationService.init(applicationContext, this@MainActivity)
-            LocationService.getLastLocation().addOnCompleteListener {
-                if (it.result != null) {
-                    //initShelters(it.result!!)
-                }
-            }
-            //TODO: Set interval for relevant shelters
-
-//            profileSettings.setOnClickListener {
-//                startActivity(Intent(this, ProfileActivity::class.java))
-//                finish()
+        // TODO: move forward based on button click or if the user already saw this display
+        val intent = Intent(applicationContext, NavigationActivity::class.java)
+        startActivity(intent)
+//        GlobalScope.launch {
+//            val res = "http://10.0.2.2:5000/api/shelters".httpGetAsync().await().asString()
+//            val shelters = JSONArray(res)
+//            intent.putExtra("shelters", res)
+//            finish()
+//
+//            LocationService.init(applicationContext, this@MainActivity)
+//            LocationService.getLastLocation().addOnCompleteListener {
+//                if (it.result != null) {
+//                    //initShelters(it.result!!)
+//                }
 //            }
-        }
+//        }
     }
 
 }
