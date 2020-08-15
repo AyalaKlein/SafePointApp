@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "761896745237",
+    "firebase_url": "https://safepoint-ebbda.firebaseio.com",
+    "project_id": "safepoint-ebbda",
+    "storage_bucket": "safepoint-ebbda.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:761896745237:android:2809cfac18d6b03136911c",
+        "android_client_info": {
+          "package_name": "com.example.safepoint"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "761896745237-48hg64t29d8fr92ckenl2htd5dcfdv6o.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyByDUgJe2JGIigQgLQh0SBcdNeirirMC5c"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "761896745237-48hg64t29d8fr92ckenl2htd5dcfdv6o.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
