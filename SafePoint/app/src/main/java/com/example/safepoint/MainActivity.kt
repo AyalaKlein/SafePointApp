@@ -37,12 +37,14 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+            //signup.setOnClickListener()
+
     }
     override fun onStart(){
 
         // TODO: Set listener to Home Front Command API
         // TODO: move forward based on button click or if the user already saw this display
-        
+
         val intent = Intent(applicationContext, NavigationActivity::class.java)
         startActivity(intent)
         super.onStart()
