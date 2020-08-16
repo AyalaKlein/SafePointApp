@@ -37,23 +37,14 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+    }
+    override fun onStart(){
+
         // TODO: Set listener to Home Front Command API
         // TODO: move forward based on button click or if the user already saw this display
+        
         val intent = Intent(applicationContext, NavigationActivity::class.java)
         startActivity(intent)
-//        GlobalScope.launch {
-//            val res = "http://10.0.2.2:5000/api/shelters".httpGetAsync().await().asString()
-//            val shelters = JSONArray(res)
-//            intent.putExtra("shelters", res)
-//            finish()
-//
-//            LocationService.init(applicationContext, this@MainActivity)
-//            LocationService.getLastLocation().addOnCompleteListener {
-//                if (it.result != null) {
-//                    //initShelters(it.result!!)
-//                }
-//            }
-//        }
+        super.onStart()
     }
-
 }

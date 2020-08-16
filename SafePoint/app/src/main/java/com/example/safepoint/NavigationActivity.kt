@@ -153,11 +153,13 @@ class NavigationActivity : AppCompatActivity(), OnMapReadyCallback {
     private fun showRegularDisplay() {
         nSafe.visibility = View.GONE
         left_btn.visibility = View.GONE
+        nav_btn.visibility = View.GONE
+        load_btn.visibility = View.GONE
         angry_btn.visibility = View.GONE
         view_timer.visibility = View.GONE
         GlobalScope.launch {
             //TODO use env server
-            val res = "http://10.0.2.2:5000/api/shelters".httpGetAsync().await()
+            val res = "${BuildConfig.HOST}/api/shelters".httpGetAsync().await()
 //            res.use{
 //                val json = Json(JsonConfiguration.Default)
 //                this@NavigationActivity.shelters = json.parse(Shelter.ser(), it.asString())

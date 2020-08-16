@@ -6,6 +6,6 @@ import android.content.Intent
 class App : Application() {
     override fun onCreate() {
         super.onCreate()
-        startService(Intent(this, SyncService::class.java))
+        //startService(Intent(this, SyncService::class.java))
     }
 }

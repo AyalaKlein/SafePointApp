@@ -23,7 +23,7 @@ class SignInActivity : AppCompatActivity() {
         login.setOnClickListener{
            GlobalScope.launch  {
                val response = httpPostAsync {
-                   url("http://10.0.2.2:5000/connect/token")
+                   url("${BuildConfig.HOST}/connect/token")
 
                    body {
                        form {
