@@ -16,8 +16,9 @@
     <string name="age">Age</string>
     <string name="registration">Registration</string>
     <string name="personal_identity">Personal Identity</string>
-    <string name="i_have_a_mobility_difficulty">I have a mobility difficulty​</string>
+    <string name="i_have_a_mobility_difficulty">I have a mobility difficulty</string>
     <string name="guest">Continue as guest</string>
+    <string name="ranOnce">ran_once</string>
     <string name="refresh_token">refresh_token</string>
     <string name="user_settings">user_settings</string>
     <string name="access_token">access_token</string>

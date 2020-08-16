@@ -5,6 +5,7 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import io.github.rybalkinsd.kohttp.dsl.async.httpPostAsync
+import io.github.rybalkinsd.kohttp.ext.asString
 import io.github.rybalkinsd.kohttp.ext.url
 import kotlinx.android.synthetic.main.activity_register.*
 import kotlinx.android.synthetic.main.activity_signin.*
@@ -40,9 +41,9 @@ class SignInActivity : AppCompatActivity() {
                    //Todo show error
                    return@launch
                }
-               val userInfo = JSONObject(response.body()?.string() ?: return@launch)
+               val userInfo = JSONObject(response.asString() ?: return@launch)
 
-               val userSettings = getSharedPreferences(getString(R.string.user_settings), Context.MODE_PRIVATE)
+                   val userSettings = getSharedPreferences(getString(R.string.user_settings), Context.MODE_PRIVATE)
                 with(userSettings.edit()){
                     putString(getString(R.string.refresh_token),
                         userInfo[getString(R.string.refresh_token)] as String?

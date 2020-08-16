@@ -37,7 +37,30 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-            //signup.setOnClickListener()
+        signup.setOnClickListener {
+            val settings = getSharedPreferences(getString(R.string.user_settings), Context.MODE_PRIVATE)
+            with(settings.edit()){
+                putBoolean("ranOnce", true)
+                commit()
+            }
+
+            val intent = Intent(applicationContext, NavigationActivity::class.java)
+            startActivity(intent)
+            finish()
+        }
+
+        guest.setOnClickListener {
+            val settings = getSharedPreferences(getString(R.string.user_settings), Context.MODE_PRIVATE)
+            settings.getBoolean(getString(R.string.ranOnce), false)
+            with(settings.edit()){
+                putBoolean(getString(R.string.ranOnce), true)
+                commit()
+            }
+
+            val intent = Intent(applicationContext, NavigationActivity::class.java)
+            startActivity(intent)
+            finish()
+        }
 
     }
     override fun onStart(){
@@ -45,8 +68,12 @@ class MainActivity : AppCompatActivity() {
         // TODO: Set listener to Home Front Command API
         // TODO: move forward based on button click or if the user already saw this display
 
-        val intent = Intent(applicationContext, NavigationActivity::class.java)
-        startActivity(intent)
+        val settings = getSharedPreferences(getString(R.string.user_settings), Context.MODE_PRIVATE)
+        val didRunOnce = settings.getBoolean(getString(R.string.ranOnce), false)
+        if(didRunOnce){
+            val intent = Intent(applicationContext, NavigationActivity::class.java)
+            startActivity(intent)
+        }
         super.onStart()
     }
 }
