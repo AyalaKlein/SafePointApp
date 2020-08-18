@@ -25,4 +25,6 @@
     <string name="expires_in">expires_in</string>
     <string name="geofences">geofences</string>
     <string name="geofence_list">geofence_list</string>
+    <string name="fcm_token">fcm_token</string>
+    <string name="selected_shelter">selected_shelter</string>
 </resources>
