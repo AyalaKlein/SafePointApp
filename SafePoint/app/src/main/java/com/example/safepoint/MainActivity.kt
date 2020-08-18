@@ -37,23 +37,43 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        signup.setOnClickListener {
+            val settings = getSharedPreferences(getString(R.string.user_settings), Context.MODE_PRIVATE)
+            with(settings.edit()){
+                putBoolean("ranOnce", true)
+                commit()
+            }
+
+            val intent = Intent(applicationContext, NavigationActivity::class.java)
+            startActivity(intent)
+            finish()
+        }
+
+        guest.setOnClickListener {
+            val settings = getSharedPreferences(getString(R.string.user_settings), Context.MODE_PRIVATE)
+            settings.getBoolean(getString(R.string.ranOnce), false)
+            with(settings.edit()){
+                putBoolean(getString(R.string.ranOnce), true)
+                commit()
+            }
+
+            val intent = Intent(applicationContext, NavigationActivity::class.java)
+            startActivity(intent)
+            finish()
+        }
+
+    }
+    override fun onStart(){
+
         // TODO: Set listener to Home Front Command API
         // TODO: move forward based on button click or if the user already saw this display
-        val intent = Intent(applicationContext, NavigationActivity::class.java)
-        startActivity(intent)
-//        GlobalScope.launch {
-//            val res = "http://10.0.2.2:5000/api/shelters".httpGetAsync().await().asString()
-//            val shelters = JSONArray(res)
-//            intent.putExtra("shelters", res)
-//            finish()
-//
-//            LocationService.init(applicationContext, this@MainActivity)
-//            LocationService.getLastLocation().addOnCompleteListener {
-//                if (it.result != null) {
-//                    //initShelters(it.result!!)
-//                }
-//            }
-//        }
-    }
 
+        val settings = getSharedPreferences(getString(R.string.user_settings), Context.MODE_PRIVATE)
+        val didRunOnce = settings.getBoolean(getString(R.string.ranOnce), false)
+        if(didRunOnce){
+            val intent = Intent(applicationContext, NavigationActivity::class.java)
+            startActivity(intent)
+        }
+        super.onStart()
+    }
 }

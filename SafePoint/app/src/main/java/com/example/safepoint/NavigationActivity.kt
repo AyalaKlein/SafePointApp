@@ -1,32 +1,17 @@
 package com.example.safepoint
 
-import android.widget.TextView
 import com.android.volley.Request
 import com.android.volley.toolbox.StringRequest
 import com.android.volley.toolbox.Volley
-import android.annotation.SuppressLint
 import android.content.Intent
 import android.graphics.Color
 import android.location.Location
-import android.net.Uri
-import android.os.Build
 import android.os.Bundle
-import android.os.Looper
 import android.os.SystemClock
-import android.provider.Settings
 import android.view.MenuItem
 import android.view.View
-import android.widget.Chronometer
-import android.widget.Chronometer.OnChronometerTickListener
-import android.widget.Toast
-import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.location.LocationManagerCompat.isLocationEnabled
 import com.example.safepoint.background.LocationService
-import com.google.android.gms.location.LocationCallback
-import com.google.android.gms.location.LocationRequest
-import com.google.android.gms.location.LocationResult
-import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
@@ -37,19 +22,13 @@ import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.gms.maps.model.PolylineOptions
 import com.google.maps.android.PolyUtil
 import io.github.rybalkinsd.kohttp.ext.asString
-import io.github.rybalkinsd.kohttp.ext.httpGet
 import io.github.rybalkinsd.kohttp.ext.httpGetAsync
-import io.github.rybalkinsd.kohttp.util.Json
 import kotlinx.android.synthetic.main.activity_navigation.*
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.newFixedThreadPoolContext
 import models.Shelter
-import okhttp3.Response
-import org.json.JSONArray
 import org.json.JSONObject
-import kotlinx.serialization.*
+import kotlinx.serialization.builtins.list
 import kotlinx.serialization.json.*
 
 
@@ -71,6 +50,12 @@ class NavigationActivity : AppCompatActivity(), OnMapReadyCallback {
         }
 
     private fun showEmergencyDisplay() {
+        nSafe.visibility = View.VISIBLE
+        left_btn.visibility = View.VISIBLE
+        nav_btn.visibility = View.VISIBLE
+        load_btn.visibility = View.VISIBLE
+        angry_btn.visibility = View.VISIBLE
+        view_timer.visibility = View.VISIBLE
         val secLeft = 60
         view_timer.isCountDown = true
         view_timer.base = SystemClock.elapsedRealtime() + (1000 * secLeft)
@@ -101,7 +86,7 @@ class NavigationActivity : AppCompatActivity(), OnMapReadyCallback {
         }
         //TODO get current location
         val latLngOrigin = LatLng(10.3181466, 123.9029382) // Ayala
-        val latLngDestination = assignedShelter!!.latLong
+        val latLngDestination = LatLng(assignedShelter!!.locY, assignedShelter!!.locX)
 
         this.googleMap!!.addMarker(MarkerOptions().position(latLngOrigin).title("Origin"))
         this.googleMap!!.addMarker(
@@ -111,8 +96,7 @@ class NavigationActivity : AppCompatActivity(), OnMapReadyCallback {
 
 
         val path: MutableList<List<LatLng>> = ArrayList()
-        val urlDirections =
-            "https://maps.googleapis.com/maps/api/directions/json?origin=10.3181466,123.9029382&destination=10.311795,123.915864&key=AIzaSyDwiKGPtON3JZTGoW08x9bBDGSqOCfMD2U"
+        val urlDirections = "https://maps.googleapis.com/maps/api/directions/json?origin=${latLngOrigin.latitude},${latLngOrigin.longitude}&destination=${latLngDestination.latitude},${latLngDestination.longitude}}&key=AIzaSyDfroIIZLRZMYZ4sYGDXO3O4Rqe3aCdaFA"
         val directionsRequest = object : StringRequest(
             Request.Method.GET,
             urlDirections,
@@ -144,8 +128,9 @@ class NavigationActivity : AppCompatActivity(), OnMapReadyCallback {
 
         val builder = LatLngBounds.Builder()
         for(shelter in shelters){
-            this.googleMap!!.addMarker(MarkerOptions().position(shelter.latLong).title(shelter.details))
-            builder.include(shelter.latLong)
+            val latLng = LatLng(shelter.locY, shelter.locX)
+            this.googleMap!!.addMarker(MarkerOptions().position(latLng).title(shelter.description))
+            builder.include(latLng)
         }
         this.googleMap!!.setLatLngBoundsForCameraTarget(builder.build())
     }
@@ -153,17 +138,19 @@ class NavigationActivity : AppCompatActivity(), OnMapReadyCallback {
     private fun showRegularDisplay() {
         nSafe.visibility = View.GONE
         left_btn.visibility = View.GONE
+        nav_btn.visibility = View.GONE
+        load_btn.visibility = View.GONE
         angry_btn.visibility = View.GONE
         view_timer.visibility = View.GONE
         GlobalScope.launch {
-            //TODO use env server
-            val res = "http://10.0.2.2:5000/api/shelters".httpGetAsync().await()
-//            res.use{
-//                val json = Json(JsonConfiguration.Default)
-//                this@NavigationActivity.shelters = json.parse(Shelter.ser(), it.asString())
-//            }
-            showRegularMap()
-
+            val res = "${BuildConfig.HOST}/api/shelters".httpGetAsync().await()
+            res.use{
+                val json = Json(JsonConfiguration.Stable)
+                this@NavigationActivity.shelters = it.asString()?.let { body ->
+                    json.parse(Shelter.serializer().list,body)
+                }?.toTypedArray() ?: emptyArray()
+            }
+            this@NavigationActivity.runOnUiThread{showRegularMap()}
         }
     }
 

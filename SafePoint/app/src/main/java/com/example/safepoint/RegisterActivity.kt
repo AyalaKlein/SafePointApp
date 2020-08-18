@@ -19,7 +19,7 @@ class RegisterActivity : AppCompatActivity() {
 
         register.setOnClickListener{
             httpPostAsync {
-                url("http://10.0.2.2:5000/api/accounts/register")
+                url("${BuildConfig.HOST}/api/accounts/register")
 
                 body { json {
                     "username" to username
