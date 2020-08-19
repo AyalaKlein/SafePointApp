@@ -42,7 +42,7 @@ class NavigationActivity : AppCompatActivity(), OnMapReadyCallback {
     private var isEmergency: Boolean = false
         set(value) {
             field = value
-            if(value){
+            if (value) {
                 showEmergencyDisplay()
             } else {
                 showRegularDisplay()
@@ -74,60 +74,67 @@ class NavigationActivity : AppCompatActivity(), OnMapReadyCallback {
 //            startActivity(Intent(this, MainActivity::class.java))
 //            finish()
         }
-        if(this.googleMap != null){
+        if (this.googleMap != null) {
             showEmergencyMap()
         }
     }
-    private fun showEmergencyMap(){
 
-        if(assignedShelter == null){
+    private fun showEmergencyMap() {
+
+        if (assignedShelter == null) {
             //TODO show there is no current location
             return;
         }
-        //TODO get current location
-        val latLngOrigin = LatLng(10.3181466, 123.9029382) // Ayala
         val latLngDestination = LatLng(assignedShelter!!.locY, assignedShelter!!.locX)
-
-        this.googleMap!!.addMarker(MarkerOptions().position(latLngOrigin).title("Origin"))
         this.googleMap!!.addMarker(
             MarkerOptions().position(latLngDestination).title("Shelter")
         )
-        this.googleMap!!.moveCamera(CameraUpdateFactory.newLatLngZoom(latLngOrigin, 14.5f))
+        //TODO get current location
+        LocationService.getLastLocation().addOnCompleteListener {
+
+            val latLngOrigin = LatLng(it.result!!.latitude, it.result!!.longitude)
+
+            this.googleMap!!.addMarker(MarkerOptions().position(latLngOrigin).title("Origin"))
+            this.googleMap!!.moveCamera(CameraUpdateFactory.newLatLngZoom(latLngOrigin, 14.5f))
 
 
-        val path: MutableList<List<LatLng>> = ArrayList()
-        val urlDirections = "https://maps.googleapis.com/maps/api/directions/json?origin=${latLngOrigin.latitude},${latLngOrigin.longitude}&destination=${latLngDestination.latitude},${latLngDestination.longitude}}&key=AIzaSyDfroIIZLRZMYZ4sYGDXO3O4Rqe3aCdaFA"
-        val directionsRequest = object : StringRequest(
-            Request.Method.GET,
-            urlDirections,
-            com.android.volley.Response.Listener<String> { response ->
-                val jsonResponse = JSONObject(response)
-                // Get routes
-                val routes = jsonResponse.getJSONArray("routes")
-                val legs = routes.getJSONObject(0).getJSONArray("legs")
-                val steps = legs.getJSONObject(0).getJSONArray("steps")
-                for (i in 0 until steps.length()) {
-                    val points =
-                        steps.getJSONObject(i).getJSONObject("polyline").getString("points")
-                    path.add(PolyUtil.decode(points))
-                }
-                for (i in 0 until path.size) {
-                    this.googleMap!!.addPolyline(PolylineOptions().addAll(path[i]).color(Color.RED))
-                }
-            },
-            com.android.volley.Response.ErrorListener { _ ->
-            }) {}
-        val requestQueue = Volley.newRequestQueue(this)
-        requestQueue.add(directionsRequest)
-
+            val path: MutableList<List<LatLng>> = ArrayList()
+            val urlDirections =
+                "https://maps.googleapis.com/maps/api/directions/json?origin=${latLngOrigin.latitude},${latLngOrigin.longitude}&destination=${latLngDestination.latitude},${latLngDestination.longitude}}&key=AIzaSyDfroIIZLRZMYZ4sYGDXO3O4Rqe3aCdaFA"
+            val directionsRequest = object : StringRequest(
+                Request.Method.GET,
+                urlDirections,
+                com.android.volley.Response.Listener<String> { response ->
+                    val jsonResponse = JSONObject(response)
+                    // Get routes
+                    val routes = jsonResponse.getJSONArray("routes")
+                    val legs = routes.getJSONObject(0).getJSONArray("legs")
+                    val steps = legs.getJSONObject(0).getJSONArray("steps")
+                    for (i in 0 until steps.length()) {
+                        val points =
+                            steps.getJSONObject(i).getJSONObject("polyline").getString("points")
+                        path.add(PolyUtil.decode(points))
+                    }
+                    for (i in 0 until path.size) {
+                        this.googleMap!!.addPolyline(
+                            PolylineOptions().addAll(path[i]).color(Color.RED)
+                        )
+                    }
+                },
+                com.android.volley.Response.ErrorListener { _ ->
+                }) {}
+            val requestQueue = Volley.newRequestQueue(this)
+            requestQueue.add(directionsRequest)
+        }
     }
-    private fun showRegularMap(){
-        if(!this.shelters.isNotEmpty()){
+
+    private fun showRegularMap() {
+        if (!this.shelters.isNotEmpty()) {
             return;
         }
 
         val builder = LatLngBounds.Builder()
-        for(shelter in shelters){
+        for (shelter in shelters) {
             val latLng = LatLng(shelter.locY, shelter.locX)
             this.googleMap!!.addMarker(MarkerOptions().position(latLng).title(shelter.description))
             builder.include(latLng)
@@ -144,13 +151,13 @@ class NavigationActivity : AppCompatActivity(), OnMapReadyCallback {
         view_timer.visibility = View.GONE
         GlobalScope.launch {
             val res = "${BuildConfig.HOST}/api/shelters".httpGetAsync().await()
-            res.use{
+            res.use {
                 val json = Json(JsonConfiguration.Stable)
                 this@NavigationActivity.shelters = it.asString()?.let { body ->
-                    json.parse(Shelter.serializer().list,body)
+                    json.parse(Shelter.serializer().list, body)
                 }?.toTypedArray() ?: emptyArray()
             }
-            this@NavigationActivity.runOnUiThread{showRegularMap()}
+            this@NavigationActivity.runOnUiThread { showRegularMap() }
         }
     }
 
@@ -172,7 +179,7 @@ class NavigationActivity : AppCompatActivity(), OnMapReadyCallback {
 
     override fun onMapReady(googleMap: GoogleMap) {
         this.googleMap = googleMap
-        if(!isEmergency){
+        if (!isEmergency) {
             showRegularMap()
         } else {
             showEmergencyMap()
