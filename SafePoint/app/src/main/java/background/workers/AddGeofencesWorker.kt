@@ -4,8 +4,13 @@ import android.content.Context
 import androidx.work.CoroutineWorker
 import androidx.work.OneTimeWorkRequest
 import androidx.work.WorkerParameters
+import com.example.safepoint.R
 import com.example.safepoint.background.LocationService
 import com.google.android.gms.maps.model.LatLng
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.double
+import kotlinx.serialization.parse
+import models.Shelter
 import utils.GeofencesManager
 import utils.PermissionsUtils
 
@@ -22,10 +27,31 @@ class AddGeofencesWorker(
 
     private fun registerGeofences() {
         LocationService.init(context, null)
-        //TODO replace with assigned shelter
-        val location = LocationService.getLastLocation().result
-        if(location != null){
-            geofencesManager.addOrUpdateGeofence("shelter", LatLng(location.latitude, location.longitude), 100)
+        val shelter = context.getSharedPreferences(
+            context.getString(R.string.user_settings),
+            Context.MODE_PRIVATE
+        ).getString(context.getString(R.string.selected_shelter), "")
+
+        var lat: Double? = null;
+        var lon: Double? = null;
+        if (shelter != null && shelter != "") {
+            val shelterJson = Json.parseJson(shelter!!)
+            lat = shelterJson.jsonObject["locY"]!!.double
+            lon = shelterJson.jsonObject["locX"]!!.double
+        } else {
+            val location = LocationService.getLastLocation().result
+            if (location != null) {
+                lat = location.latitude
+                lon = location.longitude
+            }
+        }
+
+        if (lat != null && lon != null) {
+            geofencesManager.addOrUpdateGeofence(
+                "shelter",
+                LatLng(lat, lon),
+                100
+            )
             geofencesManager.registerGeofences()
         }
     }
