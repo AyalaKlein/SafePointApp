@@ -72,6 +72,7 @@ class SafePointFCMService : FirebaseMessagingService() {
                         val notificationManager =
                             getSystemService(NOTIFICATION_SERVICE) as NotificationManager
                         notificationManager.notify(1, builder.build())
+                        //TODO set the current isEmergency value
                     }
                 }
 

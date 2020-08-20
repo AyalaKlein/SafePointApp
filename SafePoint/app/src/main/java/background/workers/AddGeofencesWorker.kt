@@ -8,6 +8,7 @@ import com.example.safepoint.R
 import com.example.safepoint.background.LocationService
 import com.google.android.gms.maps.model.LatLng
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonConfiguration
 import kotlinx.serialization.json.double
 import kotlinx.serialization.parse
 import models.Shelter
@@ -32,28 +33,23 @@ class AddGeofencesWorker(
             Context.MODE_PRIVATE
         ).getString(context.getString(R.string.selected_shelter), "")
 
-        var lat: Double? = null;
-        var lon: Double? = null;
+        val lat: Double?
+        val lon: Double?
         if (shelter != null && shelter != "") {
-            val shelterJson = Json.parseJson(shelter!!)
+            val json = Json(JsonConfiguration.Stable)
+            val shelterJson = json.parseJson(shelter)
             lat = shelterJson.jsonObject["locY"]!!.double
             lon = shelterJson.jsonObject["locX"]!!.double
         } else {
-            val location = LocationService.getLastLocation().result
-            if (location != null) {
-                lat = location.latitude
-                lon = location.longitude
-            }
+            return
         }
 
-        if (lat != null && lon != null) {
-            geofencesManager.addOrUpdateGeofence(
-                "shelter",
-                LatLng(lat, lon),
-                100
-            )
-            geofencesManager.registerGeofences()
-        }
+        geofencesManager.addOrUpdateGeofence(
+            "shelter",
+            LatLng(lat, lon),
+            100
+        )
+        geofencesManager.registerGeofences()
     }
 
     fun permissionsMissing() {}

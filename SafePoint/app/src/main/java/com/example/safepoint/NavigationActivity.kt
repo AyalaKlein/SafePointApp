@@ -43,7 +43,6 @@ class NavigationActivity : AppCompatActivity(), OnMapReadyCallback {
     private var googleMap: GoogleMap? = null
     private var myLocation: Location? = null
 
-    //TODO add logic to set isEmergency to true (for now FCM)
     private var isEmergency: Boolean = false
         set(value) {
             field = value
@@ -75,9 +74,7 @@ class NavigationActivity : AppCompatActivity(), OnMapReadyCallback {
 
 
         nSafe.setOnClickListener {
-            //TODO - save something
-//            startActivity(Intent(this, MainActivity::class.java))
-//            finish()
+            //TODO - do something
         }
         if (this.googleMap != null) {
             showEmergencyMap()
@@ -94,7 +91,7 @@ class NavigationActivity : AppCompatActivity(), OnMapReadyCallback {
         this.googleMap!!.addMarker(
             MarkerOptions().position(latLngDestination).title("Shelter")
         )
-        //TODO get current location
+        //TODO get current location over time
         LocationService.getLastLocation().addOnCompleteListener {
 
             val latLngOrigin = LatLng(it.result!!.latitude, it.result!!.longitude)
@@ -145,6 +142,9 @@ class NavigationActivity : AppCompatActivity(), OnMapReadyCallback {
             builder.include(latLng)
         }
         this.googleMap!!.setLatLngBoundsForCameraTarget(builder.build())
+        //TODO fix borders
+        //TODO get only surrounding locations
+        //TODO show user location
     }
 
     private fun showRegularDisplay() {

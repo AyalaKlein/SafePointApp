@@ -49,7 +49,6 @@ class MainActivity : AppCompatActivity() {
 
     }
     override fun onStart(){
-        // TODO: Set listener to Home Front Command API
         val settings = getSharedPreferences(getString(R.string.user_settings), Context.MODE_PRIVATE)
         val didRunOnce = settings.getBoolean(getString(R.string.ranOnce), false)
         if(didRunOnce){
