@@ -53,7 +53,6 @@ class SafePointFCMService : FirebaseMessagingService() {
 
             } else {
                 //shelter needs updating
-                //TODO update cache
                 LocationService.getLastLocation().addOnCompleteListener {
                     val userSettings =
                         getSharedPreferences(
