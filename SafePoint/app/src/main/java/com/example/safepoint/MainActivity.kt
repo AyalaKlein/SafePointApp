@@ -1,7 +1,10 @@
 package com.example.safepoint
 
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import com.google.firebase.messaging.FirebaseMessaging
@@ -31,14 +34,13 @@ class MainActivity : AppCompatActivity() {
 
         guest.setOnClickListener {
             val settings = getSharedPreferences(getString(R.string.user_settings), Context.MODE_PRIVATE)
-            settings.getBoolean(getString(R.string.ranOnce), false)
             with(settings.edit()){
                 putBoolean(getString(R.string.ranOnce), true)
                 commit()
             }
 
             FirebaseMessaging.getInstance().subscribeToTopic("israel-alerts")
-                .addOnCompleteListener { task ->
+                .addOnCompleteListener {
                     val intent = Intent(applicationContext, NavigationActivity::class.java)
                     startActivity(intent)
                     finish()
@@ -47,15 +49,24 @@ class MainActivity : AppCompatActivity() {
 
     }
     override fun onStart(){
-
         // TODO: Set listener to Home Front Command API
-        // TODO: move forward based on button click or if the user already saw this display
-
         val settings = getSharedPreferences(getString(R.string.user_settings), Context.MODE_PRIVATE)
         val didRunOnce = settings.getBoolean(getString(R.string.ranOnce), false)
         if(didRunOnce){
             val intent = Intent(applicationContext, NavigationActivity::class.java)
             startActivity(intent)
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val name = "safepoint alerts"
+            val descriptionText = "safepoint alerts"
+            val importance = NotificationManager.IMPORTANCE_DEFAULT
+            val channel = NotificationChannel("SAFEPOINT_ALERT", name, importance).apply {
+                description = descriptionText
+            }
+            // Register the channel with the system
+            val notificationManager: NotificationManager =
+                getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            notificationManager.createNotificationChannel(channel)
         }
         super.onStart()
     }

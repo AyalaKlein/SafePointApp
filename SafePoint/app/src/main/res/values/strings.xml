@@ -27,4 +27,5 @@
     <string name="geofence_list">geofence_list</string>
     <string name="fcm_token">fcm_token</string>
     <string name="selected_shelter">selected_shelter</string>
+    <string name="lastAlert">lastAlert</string>
 </resources>

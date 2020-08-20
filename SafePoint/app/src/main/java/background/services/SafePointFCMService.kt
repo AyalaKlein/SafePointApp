@@ -1,10 +1,13 @@
 package background.services
 
-import android.graphics.BitmapFactory
+import android.app.NotificationManager
+import android.app.PendingIntent
+import android.content.Context
+import android.content.Intent
+import android.content.SharedPreferences
 import android.location.Location
 import android.util.Log
 import androidx.core.app.NotificationCompat
-import android.content.Context
 import com.example.safepoint.BuildConfig
 import com.example.safepoint.NavigationActivity
 import com.example.safepoint.R
@@ -17,7 +20,13 @@ import io.github.rybalkinsd.kohttp.ext.asString
 import io.github.rybalkinsd.kohttp.ext.url
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import org.json.JSONObject
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.Json.Default.stringify
+import kotlinx.serialization.json.JsonConfiguration
+import models.Alert
+import org.joda.time.DateTime
+import java.util.*
+
 
 class SafePointFCMService : FirebaseMessagingService() {
 
@@ -26,29 +35,44 @@ class SafePointFCMService : FirebaseMessagingService() {
             Log.d(TAG, "From: ${remoteMessage.from}")
             if (remoteMessage.data.containsKey("locX")) {
                 //an alert
-                val userLocation = LocationService.getLastLocation().result
-                val locX = remoteMessage.data["locX"]?.toDoubleOrNull()
-                val locY = remoteMessage.data["locY"]?.toDoubleOrNull()
-                val distance = remoteMessage.data["meterRadius"]?.toDoubleOrNull()
-                if (locX == null || locY == null || userLocation == null) {
-                    return;
-                }
-                val dist = FloatArray(1)
-                Location.distanceBetween(
-                    userLocation.latitude,
-                    userLocation.longitude,
-                    locX,
-                    locY,
-                    dist
-                )
-                if (dist[0] < distance ?: 0.0) {
-                    //in alert area
-                    val builder = NotificationCompat.Builder(this, "")
-                    builder.setContentTitle("")
-                        //.setContentIntent(notificationPendingIntent)
-                        .setContentText("")
-                        .setDefaults(NotificationCompat.DEFAULT_ALL)
-                        .setPriority(NotificationCompat.PRIORITY_HIGH)
+                LocationService.getLastLocation().addOnCompleteListener{
+                    val userLocation = it.result
+                    val locX = remoteMessage.data["locX"]?.toDoubleOrNull()
+                    val locY = remoteMessage.data["locY"]?.toDoubleOrNull()
+                    val distance = remoteMessage.data["meterRadius"]?.toDoubleOrNull()
+                    if (locX == null || locY == null || userLocation == null) {
+                        return@addOnCompleteListener;
+                    }
+                    val dist = FloatArray(1)
+                    Location.distanceBetween(
+                        userLocation.latitude,
+                        userLocation.longitude,
+                        locX,
+                        locY,
+                        dist
+                    )
+                    if (dist[0] < distance ?: 0.0) {
+                        val settings = getSharedPreferences(getString(R.string.user_settings), Context.MODE_PRIVATE)
+                        with(settings.edit()){
+                            val json = Json(JsonConfiguration.Stable)
+                            putString(getString(R.string.lastAlert), json.stringify(Alert.serializer(), Alert(DateTime.now(), 360)))
+                            commit()
+                        }
+                        val intent = Intent(this, NavigationActivity::class.java).apply {
+                            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                        }
+                        val pendingIntent: PendingIntent = PendingIntent.getActivity(this, 0, intent, 0)
+                        val builder = NotificationCompat.Builder(this, "SAFEPOINT_ALERT").setContentTitle("Alert")
+                            .setSmallIcon(R.drawable.ic_launcher_background)
+                            .setContentText("Get to a Shelter")
+                            .setDefaults(NotificationCompat.DEFAULT_ALL).setPriority(
+                                NotificationCompat.PRIORITY_HIGH
+                            ).setContentIntent(pendingIntent)
+
+                        val notificationManager =
+                            getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+                        notificationManager.notify(1, builder.build())
+                    }
                 }
 
             } else {

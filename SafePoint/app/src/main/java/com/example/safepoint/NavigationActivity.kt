@@ -1,5 +1,6 @@
 package com.example.safepoint
 
+import android.content.Context
 import com.android.volley.Request
 import com.android.volley.toolbox.StringRequest
 import com.android.volley.toolbox.Volley
@@ -30,6 +31,10 @@ import models.Shelter
 import org.json.JSONObject
 import kotlinx.serialization.builtins.list
 import kotlinx.serialization.json.*
+import models.Alert
+import java.time.LocalDateTime
+import java.util.*
+import kotlin.collections.ArrayList
 
 
 class NavigationActivity : AppCompatActivity(), OnMapReadyCallback {
@@ -175,6 +180,19 @@ class NavigationActivity : AppCompatActivity(), OnMapReadyCallback {
         LocationService.getLastLocation().addOnCompleteListener {
             this.myLocation = it.result
         }
+    }
+
+    override fun onStart() {
+        val settings = getSharedPreferences(getString(R.string.user_settings), Context.MODE_PRIVATE)
+        val lastAlertJson = settings.getString(getString(R.string.lastAlert), "")
+        if(lastAlertJson.isNullOrEmpty()){
+            super.onStart()
+            return
+        }
+        val json = Json(JsonConfiguration.Stable)
+        val alert : Alert = json.parse(Alert.serializer(), lastAlertJson)
+        isEmergency = !alert.alertDate.plusSeconds(alert.alertSeconds).isBeforeNow
+        super.onStart()
     }
 
     override fun onMapReady(googleMap: GoogleMap) {
