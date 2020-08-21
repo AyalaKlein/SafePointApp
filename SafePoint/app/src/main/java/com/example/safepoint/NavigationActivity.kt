@@ -21,9 +21,12 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.LatLngBounds
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.gms.maps.model.PolylineOptions
+import com.google.firebase.messaging.FirebaseMessaging
 import com.google.maps.android.PolyUtil
+import io.github.rybalkinsd.kohttp.dsl.async.httpGetAsync
 import io.github.rybalkinsd.kohttp.ext.asString
 import io.github.rybalkinsd.kohttp.ext.httpGetAsync
+import io.github.rybalkinsd.kohttp.ext.url
 import kotlinx.android.synthetic.main.activity_navigation.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -31,6 +34,7 @@ import models.Shelter
 import org.json.JSONObject
 import kotlinx.serialization.builtins.list
 import kotlinx.serialization.json.*
+import kotlinx.serialization.parse
 import models.Alert
 import java.time.LocalDateTime
 import java.util.*
@@ -76,9 +80,7 @@ class NavigationActivity : AppCompatActivity(), OnMapReadyCallback {
         nSafe.setOnClickListener {
             //TODO - do something
         }
-        if (this.googleMap != null) {
-            showEmergencyMap()
-        }
+        showEmergencyMap()
     }
 
     private fun showEmergencyMap() {
@@ -87,7 +89,10 @@ class NavigationActivity : AppCompatActivity(), OnMapReadyCallback {
             //TODO show there is no current location
             return;
         }
-        val latLngDestination = LatLng(assignedShelter!!.locY, assignedShelter!!.locX)
+        if (this.googleMap == null) {
+            return;
+        }
+        val latLngDestination = LatLng(assignedShelter!!.locX, assignedShelter!!.locY)
         this.googleMap!!.addMarker(
             MarkerOptions().position(latLngDestination).title("Shelter")
         )
@@ -95,7 +100,7 @@ class NavigationActivity : AppCompatActivity(), OnMapReadyCallback {
         LocationService.getLastLocation().addOnCompleteListener {
 
             val latLngOrigin = LatLng(it.result!!.latitude, it.result!!.longitude)
-
+            this.googleMap!!.clear()
             this.googleMap!!.addMarker(MarkerOptions().position(latLngOrigin).title("Origin"))
             this.googleMap!!.moveCamera(CameraUpdateFactory.newLatLngZoom(latLngOrigin, 14.5f))
 
@@ -141,9 +146,8 @@ class NavigationActivity : AppCompatActivity(), OnMapReadyCallback {
             this.googleMap!!.addMarker(MarkerOptions().position(latLng).title(shelter.description))
             builder.include(latLng)
         }
-        this.googleMap!!.setLatLngBoundsForCameraTarget(builder.build())
-        //TODO fix borders
-        //TODO get only surrounding locations
+        //this.googleMap!!.setLatLngBoundsForCameraTarget(builder.build())
+        //TODO zoom to user radius + x
         //TODO show user location
     }
 
@@ -168,6 +172,7 @@ class NavigationActivity : AppCompatActivity(), OnMapReadyCallback {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        FirebaseMessaging.getInstance().subscribeToTopic("israel-alerts")
         setContentView(R.layout.activity_navigation)
         supportActionBar?.setHomeAsUpIndicator(R.drawable.common_google_signin_btn_icon_dark)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
@@ -184,13 +189,47 @@ class NavigationActivity : AppCompatActivity(), OnMapReadyCallback {
 
     override fun onStart() {
         val settings = getSharedPreferences(getString(R.string.user_settings), Context.MODE_PRIVATE)
+        val assignedShelterJson = settings.getString(getString(R.string.selected_shelter), "")
+        if (assignedShelterJson.isNullOrEmpty()) {
+            LocationService.getLastLocation().addOnCompleteListener {
+                GlobalScope.launch {
+                    if(it.result == null){
+                        return@launch
+                    }
+                    var userFcmToken = settings.getString(getString(R.string.fcm_token), "")
+                    if(userFcmToken.isNullOrEmpty()){
+                        userFcmToken = UUID.randomUUID().toString()
+                    }
+                    val response = httpGetAsync {
+                        url("${BuildConfig.HOST}/api/shelters/SearchForShelter?operationGuid=${UUID.randomUUID()}&fcmToken=${userFcmToken}&locX=${it.result!!.latitude}&locY=${it.result!!.longitude}")
+                    }.await()
+                    if (response.code() != 200) {
+                        return@launch
+                    }
+                    val jsonString = response.asString()
+                    with(settings.edit()) {
+                        putString(
+                            getString(com.example.safepoint.R.string.selected_shelter),
+                            jsonString
+                        )
+                        commit()
+                    }
+                    val json = Json(JsonConfiguration.Stable)
+                    assignedShelter = json.parse(Shelter.serializer(), jsonString!!)
+                }
+
+            }
+        } else {
+            val json = Json(JsonConfiguration.Stable)
+            assignedShelter = json.parse(Shelter.serializer(), assignedShelterJson!!)
+        }
         val lastAlertJson = settings.getString(getString(R.string.lastAlert), "")
-        if(lastAlertJson.isNullOrEmpty()){
+        if (lastAlertJson.isNullOrEmpty()) {
             super.onStart()
             return
         }
         val json = Json(JsonConfiguration.Stable)
-        val alert : Alert = json.parse(Alert.serializer(), lastAlertJson)
+        val alert: Alert = json.parse(Alert.serializer(), lastAlertJson)
         isEmergency = !alert.alertDate.plusSeconds(alert.alertSeconds).isBeforeNow
         super.onStart()
     }

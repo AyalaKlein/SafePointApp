@@ -35,9 +35,12 @@ class GeofenceBroadcastReceiver : BroadcastReceiver() {
             val userFcmToken = userSettings.getString(context.getString(R.string.fcm_token), "")
             GlobalScope.launch {
                 val response = httpGetAsync {
-                    url("${BuildConfig.HOST}/api/shelters/SearchForShelter?operationGuid=${UUID.randomUUID()}&fcmToken=${userFcmToken}&locX=${currLocation.longitude}&locY=${currLocation.latitude}")
+                    url("${BuildConfig.HOST}/api/shelters/SearchForShelter?operationGuid=${UUID.randomUUID()}&fcmToken=${userFcmToken}&locX=${currLocation.latitude}&locY=${currLocation.longitude}")
                 }.await()
-
+                if(response.code() != 200)
+                {
+                    return@launch
+                }
                 with(userSettings.edit()) {
                     putString(context.getString(com.example.safepoint.R.string.selected_shelter), response.asString())
                     commit()
